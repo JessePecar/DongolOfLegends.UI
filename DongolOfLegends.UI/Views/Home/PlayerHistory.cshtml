@@ -1,0 +1,40 @@
+﻿@model DongolOfLegends.API.Models.Models.MatchHistory.SummonerMatchesDetailed;
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Serialization;
+@using System.Web;
+@using Microsoft.Extensions.Configuration;
+@using System.Linq;
+@inject IConfiguration config;
+
+@{
+    ViewData["Title"] = Model.PlayerName;
+    var serializationSettings = new JsonSerializerSettings()
+    {
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        StringEscapeHandling = StringEscapeHandling.EscapeHtml
+    };
+
+    var data =
+        Html.Raw(
+             HttpUtility.JavaScriptStringEncode(
+                JsonConvert.SerializeObject(
+                    Model, Formatting.None, serializationSettings
+                ),
+             false)
+        );
+}
+
+@foreach (var match in Model.DetailedMatches)
+{
+    <div class="card">
+        <div class="card-header">
+            <label>@match.Champion.Name</label>
+        </div>
+        <div class="card-body">
+            <label>@match.Lane</label>
+        </div>
+        <div class="card-footer">
+            <label>@match.TimeOfGame.ToShortDateString()</label>
+        </div>
+    </div>
+}

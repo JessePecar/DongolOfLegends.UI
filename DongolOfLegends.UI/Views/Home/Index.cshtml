@@ -1,0 +1,70 @@
+﻿@model HomeViewModel;
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Serialization;
+@using System.Web;
+@using Microsoft.Extensions.Configuration;
+@using DongolOfLegends.API.Models.Utility;
+@inject IConfiguration config;
+
+@{
+    ViewData["Title"] = "Home Page";
+    var serializationSettings = new JsonSerializerSettings()
+    {
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        StringEscapeHandling = StringEscapeHandling.EscapeHtml
+    };
+
+    var data =
+        Html.Raw(
+             HttpUtility.JavaScriptStringEncode(
+                JsonConvert.SerializeObject(
+                    Model.VueData, Formatting.None, serializationSettings
+                ),
+             false)
+        );
+}
+
+
+<div id="home-page" class="w-100 d-flex flex-column">
+    <input class="form-control-plaintext w-25 border bg-light mb-5 shadow-sm" v-bind:placeholder="searchPlaceholder" type="text" v-model="searchText" v-on:keyup.enter="onSubmitSearch" />
+
+    <div class="d-flex w-50" v-for="match in matchHistory.detailedMatches">
+        <div class="card w-100 my-2">
+            <div class="card-header">
+                <img v-bind:src="match.champion.image.squareImage" class="champion-image" />
+                <label class="badge badge-light font-lg">{{match.champion.name}}</label>
+            </div>
+            <div class="card-body">
+                <label>{{match.lane}}</label>
+                <div class="row">
+                    <div class="my-1" v-for="item in match.searchedParticipant.stats.items">
+                        <div v-if="item">
+                            <img class="border border-dark rounded item-image" v-if="item.image" v-bind:src="item.image.squareImage" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <label>{{match.timeOfGame}}</label>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const homePage = Vue.createApp({
+        el: '#home-page',
+        data() {
+            return JSON.parse('@data');
+        },
+        methods: {
+            onSubmitSearch() {
+                $.get('http://localhost:7331/api/Home/Player/' + this.searchText)
+                    .then(data => {
+                    this.matchHistory = data;
+                });
+            }
+        }
+    }).mount('#home-page');
+</script>
